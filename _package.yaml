@@ -1,0 +1,57 @@
+name:                telescope-source-file
+version:             0.1.0.0
+github:              "barischrooneyj/telescope-source-file"
+license:             BSD3
+author:              "Jeremy Barisch-Rooney"
+maintainer:          "barischrooneyj@gmail.com"
+copyright:           "Jeremy Barisch-Rooney (c) 2018"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            database
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/barischrooneyj/telescope-source-file#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- bytestring
+- cereal
+- containers
+- directory
+- extra
+- filepath
+- fsnotify
+- strict
+- telescope
+
+library:
+  source-dirs: src
+
+executables:
+  telescope-source-file-exe:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - telescope-source-file
+
+tests:
+  telescope-source-file-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - telescope-source-file
