@@ -43,6 +43,7 @@ executables:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - telescope
     - telescope-source-file
 
 tests:

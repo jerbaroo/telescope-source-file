@@ -35,7 +35,7 @@ data MetaData = MetaData {
 instance Serialize MetaData
 
 -- | Functions to operate on a file-based data source.
-file :: IO (Source IO)
+file :: IO Source
 file = do
   metaDataMVar <- newMVar $ encode $ MetaData []
   pure Source {
@@ -52,7 +52,7 @@ file = do
   }
 
 -- | A configuration to operate on a file-based data source.
-fileConfig :: FilePath -> IO (SourceConfig IO)
+fileConfig :: FilePath -> IO SourceConfig
 fileConfig path = do
   fileSource   <- file
   handlersMVar <- newMVar []
@@ -63,20 +63,20 @@ fileConfig path = do
     , hostPort = Nothing
     }
 
-viewAllS :: ViewAllS IO
+viewAllS :: ViewAllS
 viewAllS config tk = do
   tablePath <- liftIO $ tableCanonPath tk (path config)
   liftIO $ readOrDefault Map.empty tablePath
 
-setAllS :: SetAllS IO
+setAllS :: SetAllS
 setAllS config tk table = do
   tablePath <- liftIO $ tableCanonPath tk (path config)
   liftIO $ writeFile tablePath $ unpack $ encode table
 
-rmAllS :: RmAllS IO
+rmAllS :: RmAllS
 rmAllS config tk = setAllS config tk Map.empty
 
-emitUpdatesS :: SourceConfig IO -> TableKey -> Map RowKey ByteString -> IO ()
+emitUpdatesS :: SourceConfig -> TableKey -> Map RowKey ByteString -> IO ()
 emitUpdatesS config tk updates = do
   updatesPath <- liftIO $ updatesCanonPath tk $ path config
   Updates lastUpdates@((lastID, _) : _) <- readOrDefault defUpdates updatesPath
@@ -84,20 +84,20 @@ emitUpdatesS config tk updates = do
     Updates $ (lastID + 1, updates) : lastUpdates
 
 -- | TODO: Move to Set.
-readUpdatesPaths :: SourceConfig IO -> IO [FilePath]
+readUpdatesPaths :: SourceConfig -> IO [FilePath]
 readUpdatesPaths config = do
   let metaDataMVar = _sourceMetaDataMVar $ source $ config
   bs <- readMVar metaDataMVar
   pure $ fromRight' $ decode bs
 
-addToUpdatesPaths :: FilePath -> SourceConfig IO -> IO ()
+addToUpdatesPaths :: FilePath -> SourceConfig -> IO ()
 addToUpdatesPaths newPath config = do
   let metaDataMVar = _sourceMetaDataMVar $ source $ config
   modifyMVar_ metaDataMVar $ \bs -> do
     let metaData@(MetaData paths) = fromRight' $ decode bs :: MetaData
     pure $ encode $ metaData { _metaDataUpdatesPaths = newPath : paths }
 
-watchUpdatesS :: SourceConfig IO -> TableKey -> RowKey -> IO ()
+watchUpdatesS :: SourceConfig -> TableKey -> RowKey -> IO ()
 watchUpdatesS config tk rk = do
 
   -- Path of file containing: updates for current table.
@@ -119,7 +119,7 @@ watchUpdatesS config tk rk = do
 
 -- | Watch a file for updates and run update handlers.
 subscribeToUpdatesFile ::
-  FilePath -> TableKey -> MVar Int -> SourceConfig IO -> IO ()
+  FilePath -> TableKey -> MVar Int -> SourceConfig -> IO ()
 subscribeToUpdatesFile updatePath tk lastIDMVar config = do
 
   addToUpdatesPaths updatePath config
